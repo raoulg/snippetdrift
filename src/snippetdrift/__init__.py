@@ -1,2 +1,3 @@
-def main() -> None:
-    print("Hello from snippetdrift!")
+from snippetdrift.cli import app
+
+__all__ = ["app"]
