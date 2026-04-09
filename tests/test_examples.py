@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from snippetdrift.checker import run_check, run_init
+from snippetdrift.checker import run_accept, run_check, run_init, run_sync
 from snippetdrift.models import CheckReport
 
 
@@ -30,7 +30,7 @@ def example_tree(tmp_path: Path) -> tuple[Path, Path]:
 
     shutil.copy(examples / "src" / "api" / "models.py", src_dst / "models.py")
 
-    # Strip any existing hashes so tests always start with uninitialized markdown
+    # Strip any existing hashes and code block content so tests always start clean
     md_text = (examples / "docs" / "api_guide.md").read_text()
     md_text = re.sub(r"\s+hash:[0-9a-f]{8}", "", md_text)
     md_text = re.sub(r"\s+reviewed:\d{4}-\d{2}-\d{2}", "", md_text)
@@ -60,6 +60,29 @@ def test_init_writes_hashes(example_tree: tuple[Path, Path], tmp_path: Path) -> 
         assert r.current_hash in text, f"Hash {r.current_hash!r} not written to markdown"
 
 
+def test_init_syncs_code_blocks_by_default(example_tree: tuple[Path, Path], tmp_path: Path) -> None:
+    docs_dir, _src_dir = example_tree
+
+    run_init(docs_dir)
+
+    text = (docs_dir / "api_guide.md").read_text()
+    assert "class IngestRequest" in text
+    assert "class IngestResponse" in text
+
+
+def test_init_no_sync_leaves_blocks_empty(example_tree: tuple[Path, Path], tmp_path: Path) -> None:
+    docs_dir, _src_dir = example_tree
+
+    # Blocks should contain nothing between ``` markers after fixture setup
+    run_init(docs_dir, sync=False)
+
+    text = (docs_dir / "api_guide.md").read_text()
+    # Hashes should be written
+    assert "hash:" in text
+    # But original code block content should not have been injected
+    assert "class IngestRequest" not in text
+
+
 def test_check_all_ok_after_init(example_tree: tuple[Path, Path], tmp_path: Path) -> None:
     docs_dir, _src_dir = example_tree
     run_init(docs_dir)
@@ -67,6 +90,26 @@ def test_check_all_ok_after_init(example_tree: tuple[Path, Path], tmp_path: Path
     report = run_check(docs_dir)
     assert not report.has_drift
     assert report.summary.get("ok", 0) == 2
+
+
+def test_sync_fills_code_blocks(example_tree: tuple[Path, Path], tmp_path: Path) -> None:
+    docs_dir, _src_dir = example_tree
+
+    results = run_sync(docs_dir)
+    assert len(results) == 2
+
+    text = (docs_dir / "api_guide.md").read_text()
+    assert "class IngestRequest" in text
+    assert "class IngestResponse" in text
+
+
+def test_sync_is_idempotent(example_tree: tuple[Path, Path], tmp_path: Path) -> None:
+    docs_dir, _src_dir = example_tree
+
+    run_sync(docs_dir)
+    second = run_sync(docs_dir)
+    # Second run reports no changes
+    assert second == []
 
 
 def test_drift_detected_after_source_change(
@@ -86,6 +129,24 @@ def test_drift_detected_after_source_change(
 
     drifted_sources = [str(r.ref.source_file) for r in drifted]
     assert any("models.py" in s for s in drifted_sources)
+
+
+def test_accept_sync_resolves_drift(example_tree: tuple[Path, Path], tmp_path: Path) -> None:
+    docs_dir, src_dir = example_tree
+    run_init(docs_dir)
+
+    shutil.copy(src_dir / "models_drifted.py", src_dir / "models.py")
+
+    accepted = run_accept(docs_dir, sync=True)
+    assert len(accepted) == 2
+
+    # Code blocks should now contain content from the drifted version
+    text = (docs_dir / "api_guide.md").read_text()
+    assert "IngestMetadata" in text  # new class only in drifted version
+
+    # Check should now pass
+    report = run_check(docs_dir)
+    assert not report.has_drift
 
 
 def test_check_returns_exit_code_via_has_drift(
