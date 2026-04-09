@@ -1,0 +1,15 @@
+name: Snippet Drift Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  snippetdrift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv tool install snippetdrift
+      - run: snippetdrift check docs/
