@@ -14,6 +14,11 @@ dependencies = [
     "typer>=0.24.1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/raoulg/snippetdrift"
+Repository = "https://github.com/raoulg/snippetdrift"
+Issues = "https://github.com/raoulg/snippetdrift/issues"
+
 [project.scripts]
 snippetdrift = "snippetdrift.cli:app"
 
