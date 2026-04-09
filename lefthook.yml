@@ -1,0 +1,5 @@
+pre-commit:
+  commands:
+    snippetdrift:
+      run: snippetdrift check {staged_files}
+      glob: "*.md"
