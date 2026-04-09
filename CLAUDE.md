@@ -79,10 +79,11 @@ snippetdrift/
 
 ## `pyproject.toml` requirements
 
-- Use **uv** conventions: `[build-system]` with `hatchling`, or `flit_core` — your choice
+- Use **uv** conventions: `[build-system]` with `hatchling`
 - Package name: `snippetdrift`
 - Entry point: `snippetdrift` → `snippetdrift.cli:app`
 - Python `>=3.11`
+- run code with `uv run python` to avoid issues with the environment not being activated
 
 **Runtime dependencies:**
 - `typer` (with extras `[all]` for rich support)
