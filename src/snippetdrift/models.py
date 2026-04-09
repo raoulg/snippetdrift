@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
@@ -16,7 +16,7 @@ class SnippetRef(BaseModel):
     start_line: int
     end_line: int
     stored_hash: str | None
-    reviewed_date: date | None
+    reviewed_date: datetime | None
 
 
 class SnippetResult(BaseModel):

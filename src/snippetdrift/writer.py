@@ -8,7 +8,7 @@ from loguru import logger
 _SENTINEL_RE = re.compile(
     r"(<!--\s*snippetdrift:\s*[^\s#]+#L\d+-\d+)"
     r"(?:\s+hash:[0-9a-f]{8})?"
-    r"(?:\s+reviewed:\d{4}-\d{2}-\d{2})?"
+    r"(?:\s+reviewed:\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?)?"
     r"(\s*-->)"
 )
 

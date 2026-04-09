@@ -91,7 +91,7 @@ snippetdrift accept --sync docs/
 |---|---|
 | `src/api/models.py#L27-34` | Path relative to repo root, with line range |
 | `hash:a3f9b2c1` | First 8 hex chars of SHA-256 of the source lines (written by `init`/`accept`) |
-| `reviewed:2025-04-09` | ISO date when the hash was last confirmed correct |
+| `reviewed:2025-04-09T14:32:00` | Datetime when the hash was last confirmed correct (written by `init`/`accept`) |
 
 ---
 
@@ -108,6 +108,18 @@ snippetdrift accept --sync docs/
 All commands accept a path to a markdown file or directory (default: current directory, recursive).
 
 `snippetdrift accept` also accepts `--snippet <source-path>` to scope acceptance to a single source file.
+
+### What each command touches
+
+| | Code block content | `hash:` in sentinel | `reviewed:` in sentinel | Cache |
+|---|:---:|:---:|:---:|:---:|
+| `init` | ✅ (default, skip with `--no-sync`) | ✅ written | ✅ set to now | ✅ written |
+| `sync` | ✅ updated | ❌ | ❌ | ❌ |
+| `check` | ❌ read-only | ❌ read-only | ❌ read-only | ❌ |
+| `accept` | ❌ (opt-in with `--sync`) | ✅ recomputed | ✅ set to now | ✅ updated |
+| `status` | ❌ read-only | ❌ read-only | ❌ read-only | ❌ |
+
+The `reviewed:` timestamp is the human sign-off marker — only `init` and `accept` update it, because those are the points where someone confirms the documentation is correct.
 
 ---
 

@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import re
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 
 from loguru import logger
 
 from snippetdrift.models import SnippetRef
 
-# <!-- snippetdrift: src/api/models.py#L45-60 hash:a3f9b2c1 reviewed:2025-04-09 -->
+# <!-- snippetdrift: src/api/models.py#L45-60 hash:a3f9b2c1 reviewed:2025-04-09T14:32:00 -->
+# Also accepts the legacy date-only format: reviewed:2025-04-09
 _SENTINEL_RE = re.compile(
     r"<!--\s*snippetdrift:\s*(?P<source>[^\s#]+)#L(?P<start>\d+)-(?P<end>\d+)"
     r"(?:\s+hash:(?P<hash>[0-9a-f]{8}))?"
-    r"(?:\s+reviewed:(?P<reviewed>\d{4}-\d{2}-\d{2}))?"
+    r"(?:\s+reviewed:(?P<reviewed>\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?))?"
     r"\s*-->"
 )
 
@@ -33,7 +34,9 @@ def parse_file(markdown_file: Path) -> list[SnippetRef]:
         end_line = int(m.group("end"))
         stored_hash = m.group("hash")
         reviewed_str = m.group("reviewed")
-        reviewed_date: date | None = date.fromisoformat(reviewed_str) if reviewed_str else None
+        reviewed_date: datetime | None = (
+            datetime.fromisoformat(reviewed_str) if reviewed_str else None
+        )
 
         logger.debug(
             "Found sentinel at {}:{} → {}#L{}-{}",

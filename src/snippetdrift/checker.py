@@ -218,6 +218,6 @@ def run_accept(
 
 
 def _today_str() -> str:
-    from datetime import date
+    from datetime import datetime
 
-    return date.today().isoformat()
+    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S")

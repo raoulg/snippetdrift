@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import difflib
+from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
@@ -11,6 +12,15 @@ from rich.text import Text
 from snippetdrift.models import CheckReport, SnippetResult
 
 console = Console()
+
+
+def _fmt_dt(dt: datetime | None) -> str:
+    """Format a datetime for display, omitting seconds when zero."""
+    if dt is None:
+        return ""
+    if dt.second == 0:
+        return dt.strftime("%Y-%m-%d %H:%M")
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _status_icon(status: str) -> Text:
@@ -42,7 +52,7 @@ def print_check_results(report: CheckReport, repo_root: Path | None = None) -> N
         icon = _status_icon(result.status)
         md_loc = f"{ref.markdown_file}:{ref.line_number}"
         src_loc = f"{ref.source_file}#L{ref.start_line}-{ref.end_line}"
-        reviewed = f"reviewed {ref.reviewed_date}" if ref.reviewed_date else "not reviewed"
+        reviewed = f"reviewed {_fmt_dt(ref.reviewed_date)}" if ref.reviewed_date else "not reviewed"
         label_str = result.status.upper() if result.status != "ok" else "ok"
         label = _status_label(result.status)
 
@@ -82,7 +92,7 @@ def _print_drift_detail(result: SnippetResult, repo_root: Path | None) -> None:
     console.print(f"\n  Source:       {ref.source_file}  lines {ref.start_line}–{ref.end_line}")
     console.print(
         f"  Stored hash:  [yellow]{ref.stored_hash}[/]"
-        + (f"   (reviewed {ref.reviewed_date})" if ref.reviewed_date else "")
+        + (f"   (reviewed {_fmt_dt(ref.reviewed_date)})" if ref.reviewed_date else "")
     )
     console.print(f"  Current hash: [red]{result.current_hash}[/]\n")
     console.print("  The source region has changed since this snippet was last reviewed.")
@@ -180,7 +190,7 @@ def print_status_table(report: CheckReport) -> None:
         ref = result.ref
         icon = _status_icon(result.status)
         src = f"{ref.source_file}#L{ref.start_line}-{ref.end_line}"
-        reviewed = str(ref.reviewed_date) if ref.reviewed_date else "-"
+        reviewed = _fmt_dt(ref.reviewed_date) if ref.reviewed_date else "-"
         table.add_row(icon, f"{ref.markdown_file}:{ref.line_number}", src, reviewed)
 
     console.print()

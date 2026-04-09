@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -34,7 +34,7 @@ def test_parse_initialized(md_with_initialized: Path) -> None:
     assert ref.start_line == 10
     assert ref.end_line == 20
     assert ref.stored_hash == "a1b2c3d4"
-    assert ref.reviewed_date == date(2025, 4, 1)
+    assert ref.reviewed_date == datetime(2025, 4, 1)
     assert ref.line_number == 2
 
 
