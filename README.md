@@ -127,17 +127,18 @@ The `reviewed:` timestamp is the human sign-off marker — only `init` and `acce
 
 **First time setup:**
 ```bash
-snippetdrift init docs/
+snippetdrift init docs/          # sync source into code blocks + write hashes
 git add docs/
 git commit -m "docs: initialize snippet hashes"
 ```
 
-**Handling drift:**
+**Day to day — source code changes:**
 ```bash
-# CI fails with drift detected
-snippetdrift sync docs/          # update code block content
-# edit prose around the snippet if needed
-snippetdrift accept docs/        # reset hashes
+# change source code
+snippetdrift check docs/         # drift detected → exit 1
+snippetdrift sync docs/          # pull new source lines into code blocks
+# review the diff, edit surrounding prose if needed
+snippetdrift accept docs/        # reset hashes, mark as reviewed
 git add docs/
 git commit -m "docs: accept drift in api_guide"
 ```
