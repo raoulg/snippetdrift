@@ -17,10 +17,23 @@ _DEFAULT_PATH = typer.Argument(None, help="Path to markdown file or directory (d
 
 def _setup_logging(verbose: bool) -> None:
     logger.remove()
+
+    # stderr: DEBUG when --verbose, otherwise WARNING only
     if verbose:
         logger.add(sys.stderr, level="DEBUG")
     else:
         logger.add(sys.stderr, level="WARNING")
+
+    # Log file: always DEBUG, rotated at 1 MB, keep last 3 files
+    log_dir = Path(".snippetdrift_cache")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    logger.add(
+        log_dir / "snippetdrift.log",
+        level="DEBUG",
+        rotation="1 MB",
+        retention=3,
+        encoding="utf-8",
+    )
 
 
 @app.command("check")
