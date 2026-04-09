@@ -1,11 +1,11 @@
 pre-commit:
   commands:
     format:
-      run: ruff check {staged_files}
+      run: uv run ruff check {staged_files}
       glob: "*.py"
     check:
-      run: ruff check {staged_files}
+      run: uv run ruff check {staged_files}
       glob: "*.py"
     typecheck:
-      run: ty check {staged_files}
+      run: uv run mypy {staged_files}
       glob: "*.py"
