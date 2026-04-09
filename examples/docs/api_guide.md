@@ -11,13 +11,6 @@ To submit a document for ingestion, POST to `/v1/ingest` with an `IngestRequest`
 
 <!-- snippetdrift: examples/src/api/models.py#L27-34 -->
 ```python
-class IngestRequest(BaseModel):
-    """Payload for submitting a document to the ingestion pipeline."""
-
-    document_id: str = Field(..., description="Unique identifier for the document")
-    content: str = Field(..., description="Raw text content to ingest")
-    language: Literal["nl", "en"] = Field("nl", description="Language of the document")
-    source_url: str | None = Field(None, description="Optional origin URL of the document")
 ```
 
 The `language` field defaults to `"nl"` (Dutch). Set it to `"en"` for English documents.
@@ -31,14 +24,6 @@ After submission the API returns an `IngestResponse`:
 
 <!-- snippetdrift: examples/src/api/models.py#L36-43 -->
 ```python
-class IngestResponse(BaseModel):
-    """Response returned after submitting a document."""
-
-    document_id: str = Field(..., description="The document ID echoed back")
-    status: Literal["queued", "processed", "failed"] = Field(
-        ..., description="Processing status"
-    )
-    message: str | None = Field(None, description="Optional human-readable status message")
 ```
 
 Poll `GET /v1/ingest/{document_id}` until `status` is `"processed"` or `"failed"`.
