@@ -1,5 +1,11 @@
 pre-commit:
   commands:
-    snippetdrift:
-      run: snippetdrift check {staged_files}
-      glob: "*.md"
+    format:
+      run: ruff check {staged_files}
+      glob: "*.py"
+    check:
+      run: ruff check {staged_files}
+      glob: "*.py"
+    typecheck:
+      run: ty check {staged_files}
+      glob: "*.py"
