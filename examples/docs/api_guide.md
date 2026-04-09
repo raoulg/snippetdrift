@@ -9,7 +9,7 @@ All models are defined using [Pydantic v2](https://docs.pydantic.dev/) and are f
 
 To submit a document for ingestion, POST to `/v1/ingest` with an `IngestRequest` body.
 
-<!-- snippetdrift: examples/src/api/models.py#L27-34 hash:daaed440 reviewed:2026-04-09 -->
+<!-- snippetdrift: examples/src/api/models.py#L27-34 -->
 ```python
 class IngestRequest(BaseModel):
     """Payload for submitting a document to the ingestion pipeline."""
@@ -29,7 +29,7 @@ The `source_url` is optional and can be used to record where the document origin
 
 After submission the API returns an `IngestResponse`:
 
-<!-- snippetdrift: examples/src/api/models.py#L36-43 hash:04134a06 reviewed:2026-04-09 -->
+<!-- snippetdrift: examples/src/api/models.py#L36-43 -->
 ```python
 class IngestResponse(BaseModel):
     """Response returned after submitting a document."""
