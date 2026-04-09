@@ -41,25 +41,48 @@ def check(
     if report.has_drift:
         raise typer.Exit(code=1)
 
-    uninitialized = report.summary.get("uninitialized", 0)
-    if uninitialized > 0:
-        raise typer.Exit(code=0)
-
 
 @app.command("init")
 def init(
     path: Path | None = _DEFAULT_PATH,
+    no_sync: bool = typer.Option(
+        False, "--no-sync", help="Skip syncing source lines into code blocks"
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable debug logging"),
 ) -> None:
-    """Initialize uninitialized snippet hashes in-place."""
+    """Initialize uninitialized snippets: sync content + write hashes.
+
+    By default also syncs source lines into the code blocks. Use --no-sync to
+    write hashes only without touching code block content.
+    """
     from snippetdrift.checker import run_init
     from snippetdrift.display import print_init_results
 
     _setup_logging(verbose)
     target = path or Path.cwd()
 
-    results = run_init(target)
+    results = run_init(target, sync=not no_sync)
     print_init_results(results)
+
+
+@app.command("sync")
+def sync(
+    path: Path | None = _DEFAULT_PATH,
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable debug logging"),
+) -> None:
+    """Copy current source lines into code blocks. Does not change hashes.
+
+    Use this to update code block content after a drift without yet accepting.
+    After syncing, review any surrounding prose, then run `snippetdrift accept`.
+    """
+    from snippetdrift.checker import run_sync
+    from snippetdrift.display import print_sync_results
+
+    _setup_logging(verbose)
+    target = path or Path.cwd()
+
+    results = run_sync(target)
+    print_sync_results(results)
 
 
 @app.command("accept")
@@ -68,16 +91,23 @@ def accept(
     snippet: str | None = typer.Option(
         None, "--snippet", help="Only accept snippets from this source file path"
     ),
+    do_sync: bool = typer.Option(
+        False, "--sync", help="Also sync source lines into code blocks before accepting"
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable debug logging"),
 ) -> None:
-    """Accept drifted snippets and reset their hashes."""
+    """Accept drifted snippets and reset their hashes.
+
+    Marks all snippets as reviewed at today's date. Pass --sync to also update
+    the code block content from source in the same step.
+    """
     from snippetdrift.checker import run_accept
     from snippetdrift.display import print_accept_results
 
     _setup_logging(verbose)
     target = path or Path.cwd()
 
-    results = run_accept(target, snippet_filter=snippet)
+    results = run_accept(target, snippet_filter=snippet, sync=do_sync)
     print_accept_results(results)
 
 

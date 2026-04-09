@@ -64,16 +64,54 @@ def run_check(path: Path) -> CheckReport:
     return CheckReport(scanned_files=md_files, results=results)
 
 
-def run_init(path: Path) -> list[SnippetResult]:
-    """Initialize uninitialized snippets: write hash+reviewed into the markdown."""
-    from snippetdrift.writer import write_hash_to_markdown
+def run_sync(path: Path) -> list[SnippetResult]:
+    """Sync source lines into fenced code blocks. Does not touch hashes."""
+    from snippetdrift.writer import sync_code_block
+
+    repo_root = find_repo_root(path)
+    md_files = collect_markdown_files(path)
+    synced: list[SnippetResult] = []
+
+    for md_file in md_files:
+        # Process bottom-to-top so inserting/removing lines in one block
+        # does not invalidate the line numbers of blocks above it.
+        refs = sorted(parse_file(md_file), key=lambda r: r.line_number, reverse=True)
+        for ref in refs:
+            source_abs = repo_root / ref.source_file
+            if not source_abs.exists():
+                logger.warning("Source file missing: {}", source_abs)
+                continue
+
+            short_hash, _full_hash, source_lines = compute_hash(
+                source_abs, ref.start_line, ref.end_line
+            )
+            changed = sync_code_block(md_file, ref.line_number, source_lines)
+
+            if changed:
+                result = SnippetResult(
+                    ref=ref,
+                    current_hash=short_hash,
+                    status="ok",
+                    source_lines=source_lines,
+                )
+                synced.append(result)
+                logger.debug("Synced {}:{}", md_file, ref.line_number)
+
+    return synced
+
+
+def run_init(path: Path, *, sync: bool = True) -> list[SnippetResult]:
+    """Initialize uninitialized snippets: optionally sync content, then write hashes."""
+    from snippetdrift.writer import sync_code_block, write_hash_to_markdown
 
     repo_root = find_repo_root(path)
     md_files = collect_markdown_files(path)
     initialized: list[SnippetResult] = []
 
     for md_file in md_files:
-        refs = parse_file(md_file)
+        # Process bottom-to-top so inserting/removing lines in one block
+        # does not invalidate the line numbers of blocks above it.
+        refs = sorted(parse_file(md_file), key=lambda r: r.line_number, reverse=True)
         for ref in refs:
             if ref.stored_hash is not None:
                 logger.debug(
@@ -90,6 +128,9 @@ def run_init(path: Path) -> list[SnippetResult]:
                 source_abs, ref.start_line, ref.end_line
             )
             today = _today_str()
+
+            if sync:
+                sync_code_block(md_file, ref.line_number, source_lines)
 
             write_hash_to_markdown(md_file, ref.line_number, short_hash, today)
             write_cache_entry(
@@ -117,16 +158,23 @@ def run_init(path: Path) -> list[SnippetResult]:
     return initialized
 
 
-def run_accept(path: Path, snippet_filter: str | None = None) -> list[SnippetResult]:
-    """Accept drifted snippets: rewrite hash+reviewed in markdown and update cache."""
-    from snippetdrift.writer import write_hash_to_markdown
+def run_accept(
+    path: Path, snippet_filter: str | None = None, *, sync: bool = False
+) -> list[SnippetResult]:
+    """Accept drifted snippets: rewrite hash+reviewed in markdown and update cache.
+
+    Pass sync=True to also update the code block content from source before accepting.
+    """
+    from snippetdrift.writer import sync_code_block, write_hash_to_markdown
 
     repo_root = find_repo_root(path)
     md_files = collect_markdown_files(path)
     accepted: list[SnippetResult] = []
 
     for md_file in md_files:
-        refs = parse_file(md_file)
+        # Process bottom-to-top so inserting/removing lines in one block
+        # does not invalidate the line numbers of blocks above it.
+        refs = sorted(parse_file(md_file), key=lambda r: r.line_number, reverse=True)
         for ref in refs:
             if snippet_filter and str(ref.source_file) != snippet_filter:
                 continue
@@ -140,6 +188,9 @@ def run_accept(path: Path, snippet_filter: str | None = None) -> list[SnippetRes
                 source_abs, ref.start_line, ref.end_line
             )
             today = _today_str()
+
+            if sync:
+                sync_code_block(md_file, ref.line_number, source_lines)
 
             write_hash_to_markdown(md_file, ref.line_number, short_hash, today)
             write_cache_entry(

@@ -110,7 +110,10 @@ def _print_drift_detail(result: SnippetResult, repo_root: Path | None) -> None:
                     console.print(f"  {line}")
 
     console.print(f"\n  Check whether [bold]{ref.markdown_file}[/] needs updating, then run:\n")
+    console.print(f"    snippetdrift sync {ref.markdown_file}")
     console.print(f"    snippetdrift accept {ref.markdown_file}\n")
+    console.print("  Or in one step if no prose changes are needed:")
+    console.print(f"    snippetdrift accept --sync {ref.markdown_file}\n")
     console.print(Rule(style="dim"))
     console.print()
 
@@ -144,6 +147,24 @@ def print_accept_results(results: list[SnippetResult]) -> None:
         )
     console.print(
         f"\n  Accepted {len(results)} snippet{'s' if len(results) != 1 else ''}.\n",
+        style="green",
+    )
+
+
+def print_sync_results(results: list[SnippetResult]) -> None:
+    if not results:
+        console.print("\n  All code blocks already up to date.\n", style="green")
+        return
+    for result in results:
+        ref = result.ref
+        console.print(
+            f"  [blue]↻[/]  {ref.markdown_file}:{ref.line_number}"
+            f"  {ref.source_file}#L{ref.start_line}-{ref.end_line}"
+            f"  → synced"
+        )
+    console.print(
+        f"\n  Synced {len(results)} code block{'s' if len(results) != 1 else ''}."
+        "  Commit the updated markdown files.\n",
         style="green",
     )
 
