@@ -7,5 +7,5 @@ pre-commit:
       run: uv run ruff check {staged_files}
       glob: "*.py"
     typecheck:
-      run: uv run mypy {staged_files}
+      run: uv run ty check {staged_files}
       glob: "*.py"

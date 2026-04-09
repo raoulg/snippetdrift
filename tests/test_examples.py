@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 import shutil
 from pathlib import Path
 
@@ -30,13 +29,21 @@ def example_tree(tmp_path: Path) -> tuple[Path, Path]:
 
     shutil.copy(examples / "src" / "api" / "models.py", src_dst / "models.py")
 
-    # Strip hashes, reviewed timestamps, and code block bodies so tests start clean
-    md_text = (examples / "docs" / "api_guide.md").read_text()
-    md_text = re.sub(r"\s+hash:[0-9a-f]{8}", "", md_text)
-    md_text = re.sub(r"\s+reviewed:\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?", "", md_text)
-    # Empty code block bodies: keep the opening/closing fences, remove everything between
-    md_text = re.sub(r"(```\w*\n).*?\n(```)", r"\1\2", md_text, flags=re.DOTALL)
-    (docs_dst / "api_guide.md").write_text(md_text)
+    # Write the markdown from scratch so tests are never affected by the
+    # state of the real examples/docs/api_guide.md (which the linter may modify).
+    (docs_dst / "api_guide.md").write_text(
+        "# Ingestion API Guide\n"
+        "\n"
+        "<!-- snippetdrift: examples/src/api/models.py#L27-34 -->\n"
+        "```python\n"
+        "```\n"
+        "\n"
+        "---\n"
+        "\n"
+        "<!-- snippetdrift: examples/src/api/models.py#L36-43 -->\n"
+        "```python\n"
+        "```\n"
+    )
 
     # Also copy the drifted file for later use
     shutil.copy(
