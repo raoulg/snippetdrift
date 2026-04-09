@@ -11,21 +11,18 @@ This directory demonstrates `snippetdrift` in action.
 ## Try it yourself
 
 ```bash
-# From the repo root
-cd examples
-
 # Initialize hashes into the markdown
-snippetdrift init docs/
+snippetdrift init examples/docs/
 
 # Check — all ok
-snippetdrift check docs/
+snippetdrift check examples/docs/
 
 # Simulate drift: replace the source with the drifted version
-cp src/api/models_drifted.py src/api/models.py
+cp examples/src/api/models_drifted.py examples/src/api/models.py
 
 # Check again — drift detected on the second snippet
-snippetdrift check docs/
+snippetdrift check examples/docs/
 
 # Accept the drift after reviewing
-snippetdrift accept docs/api_guide.md
+snippetdrift accept examples/docs/api_guide.md
 ```
