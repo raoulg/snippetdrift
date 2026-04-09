@@ -1,5 +1,7 @@
 # snippetdrift
 
+[![PyPI](https://img.shields.io/pypi/v/snippetdrift?color=blue)](https://pypi.org/project/snippetdrift/) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![ty](https://img.shields.io/badge/type--checked-ty-blue)](https://github.com/astral-sh/ty) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+
 **snippetdrift** keeps code snippets in your markdown documentation honest. It syncs source code directly into your docs and detects when those regions change — so you always know when documentation may have gone stale.
 
 ---
